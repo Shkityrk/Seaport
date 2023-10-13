@@ -1045,3 +1045,6 @@ dkms.conf
 *.dis
 
 /cmake-build-debug
+/CMakeLists.txt
+*.txt
+/.idea
