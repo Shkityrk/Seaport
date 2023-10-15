@@ -234,29 +234,29 @@ int main() {
 
 
 
-                //создаем три вектора, длиной max_num_cranes
-                vector<int> queue_particulate_crane(max_num_cranes, 0);//очередь
-                vector<int> queue_containers_crane(max_num_cranes, 0);
-                vector<int> queue_liquid_crane(max_num_cranes, 0);
-
-                for (int time=0; time<=24*30; time++){
-                    n++;
-
-
-
-
-                }
+//                //создаем три вектора, длиной max_num_cranes
+//                vector<int> queue_particulate_crane(max_num_cranes, 0);//очередь
+//                vector<int> queue_containers_crane(max_num_cranes, 0);
+//                vector<int> queue_liquid_crane(max_num_cranes, 0);
+//                for (int time=0; time<=24*30; time++){
+//                    n++;
+//                }
 
 
 
 
-            }
 
 
-        }
 
 
-    }
+
+
+
+
+
+
+
+
     //подсчет времени выполнения программы
     unsigned int end_time = clock();
     unsigned int search_time = end_time - start_time;
