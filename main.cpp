@@ -69,6 +69,7 @@ public:
         else if (random(0,2)==2){// если идет дождь, длительность увеличивается
             actualDuration = actualDuration + (cargoWeight%100);
         }
+        //ВОЛНЫ
 
         //увеличение продолжительности из-за типа
         if (cargoType=="Сыпучий"){
@@ -220,9 +221,19 @@ int main() {
     unsigned int n=0;// время в генерации
 
     int max_num_cranes=40;//максимальное кол-во портов одного вида
+    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
+    int sum_cranes_min_penny_particulate=1000000000;//начальная сумма штрафа
 
+
+    //Далее ищем минимальную сумму штрафа и количество портов при этом
+
+    //Сухогруз
     for(int num_particulate_crane=0; num_particulate_crane<=max_num_cranes;num_particulate_crane++) {//кол-во сыпучих кранов
-
+        int penny= modelling_ships(num_particulate_crane, database_arrival_ships);
+        if (penny<sum_cranes_min_penny_particulate){
+            num_cranes_min_penny_particulate=num_particulate_crane;
+            sum_cranes_min_penny_particulate=penny;
+        }
     }
     for (int num_containers_crane=0;num_containers_crane<=max_num_cranes;num_containers_crane++) {//кол-во контейнеров
 
@@ -231,7 +242,7 @@ int main() {
 
     }
 
-
+    cout<<num_cranes_min_penny_particulate<<endl;
 
 
 //                //создаем три вектора, длиной max_num_cranes
