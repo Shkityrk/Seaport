@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <algorithm>
 
 #include "readfile.cpp"
 
@@ -47,6 +48,9 @@ public:
          //обработка в функции
         arrivalDate = ship_arrivalDate;
         arrivalTime=ship_arrivalTime;
+
+//        actualDuration=plannedDuration;
+//        real_arrivalTime = arrivalDate*24 + arrivalTime;
 
 
 
@@ -138,9 +142,17 @@ vector<Ship> readShipsFromFile(const string& file_path){//чтение данн�
 // Перераспределение кранов между разными типами груза
 // Определение класса для модели морского порта
 
+struct Ship_in_queue {
+    int arrivalTime;
+    int unloadingTime;
+};
+
+bool compareByArrivalTime(const Ship_in_queue& a, const Ship_in_queue& b) {
+    return a.arrivalTime < b.arrivalTime;
+}
+
 //Моделирование очереди работы num_ports портов для данных из data. Порты и корабли только для одного ТИПА
 int modelling_ships(int num_ports, vector<Ship>& data){
-    int penny=0; // штраф за простой!
     /*
      * Массив количества портов типа. В начальный момент времени все порты свободны, т.е освободятся в 0.
      * Поэтому их начальное значение=0
@@ -150,44 +162,65 @@ int modelling_ships(int num_ports, vector<Ship>& data){
      * Далее удаляем из вектора - он нам больше не нужен.
      *
      */
-    vector<int> queue_particulate_crane(num_ports, 0);//кол-во кранов в порту
-    for(int time=0; time<24*30;time++) {// каждый час
-        for (int i = 0; i < data.size(); i++) {// каждый корабль
-            bool flag = false;
-            for (int port = 0; port < queue_particulate_crane.size(); port++) {//каждый порт
-                // если еще не пристыковался к порту и ищет его
-                if ((queue_particulate_crane[port] < data[i].real_arrivalTime) &&
-                    (data[i].real_arrivalTime != 0)) {//свободный и не занулен?
-                    queue_particulate_crane[port] = data[i].actualDuration;
-                    flag = true;
+    int numPorts= num_ports;// Количество портов
+    int totalPenalty = 0;
+    int numShips=data.size(); // Количество кораблей
+    vector<Ship_in_queue> ships(numShips);
 
-                    data[i].real_arrivalTime = 0;//зануляем того, кто отгружается/отгрузился
-                    break;
+    for (int i = 0; i < numShips; ++i) {
+        ships[i].arrivalTime=data[i].real_arrivalTime;
+        ships[i].unloadingTime=data[i].actualDuration;
+    }
+    // отсортировать массив!
+    sort(ships.begin(), ships.end(), compareByArrivalTime);
+
+    vector<int> ports(numPorts, 0);
+
+
+    for(int time=0; time<100; time++){//время
+        for(int korabl=0; korabl<numShips; korabl++){
+            for (int port=0; port<numPorts; port++ ){
+                if ((ships[korabl].unloadingTime!=0)){
+                    if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
+                        ports[port]=ships[korabl].unloadingTime+time;
+                        ships[korabl].unloadingTime=0;//зануляем
+                        break;
+                        ///????????
+                    }
                 }
             }
-            if (!flag) {//корабль простаивает 1 час
-                penny += 1;
+        }
+        for(int Queue_ships=0; Queue_ships<numShips; Queue_ships++){
+            if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
+                totalPenalty+=1;
             }
         }
-
-    }
-    return penny;
-//    for (int i=0; i<data.size(); i++){// проходим по каждому кораблю
-//        bool flag=0;
-//
-//        for (int port=0; port<queue_particulate_crane.size(); port++){//ищем свободный порт
-//            // если еще не пристыковался к порту и ищет его
-//            if (queue_particulate_crane[port] < data[i].real_arrivalTime){
-//                queue_particulate_crane[port]=data[i].actualDuration;
-//                flag=1;
-//                break;
-//            }
-//        }
-//        if (flag==0){
-//            penny+=1;
-//        }
-//    }
+    };
+    return totalPenalty;
 }
+
+vector<int> calculate_queue(int max_num_cranes, vector<Ship> database_arrival_ships){
+    vector<int> queue(2);
+    vector<int> sum_cranes_min_penny(max_num_cranes, 0);
+
+    int num_cranes_min_penny;//количество кранов типа при котором сумма штрафов минимальная
+    int min_penny=INT_MAX;
+    int penny;
+
+
+    for(int num_crane=1; num_crane<=max_num_cranes;++num_crane) {//кол-во сыпучих кранов
+        penny=modelling_ships(num_crane, database_arrival_ships);
+        if (penny<min_penny){
+            min_penny=penny;
+            num_cranes_min_penny=num_crane;
+        }
+    }
+    queue[0]=num_cranes_min_penny;
+    queue[1]=min_penny;
+
+    return queue;
+}
+
 
 
 int main() {
@@ -200,7 +233,7 @@ int main() {
     //создаем пустые вектора под каждый тип груза
     vector<Ship> particulate_Ships;
     vector<Ship> liquid_Ships;
-    vector<Ship> konteyner_Ships;
+    vector<Ship> container_Ships;
 
 
     //сортировка по типу груза
@@ -210,7 +243,7 @@ int main() {
         } else if (ship.cargoType == "Жидкий") {
             liquid_Ships.push_back(ship);
         } else if (ship.cargoType == "Контейнер") {
-            konteyner_Ships.push_back(ship);
+            container_Ships.push_back(ship);
         } else{
             cout<<"Не все строки обработаны, проверьте тип необходимого порта"<<endl;
             return 0;
@@ -220,29 +253,65 @@ int main() {
 
     unsigned int n=0;// время в генерации
 
-    int max_num_cranes=40;//максимальное кол-во портов одного вида
-    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
-    int sum_cranes_min_penny_particulate=1000000000;//начальная сумма штрафа
+    int max_num_cranes=6;//максимальное кол-во кранов одного вида
+
+
 
 
     //Далее ищем минимальную сумму штрафа и количество портов при этом
 
-    //Сухогруз
-    for(int num_particulate_crane=0; num_particulate_crane<=max_num_cranes;num_particulate_crane++) {//кол-во сыпучих кранов
-        int penny= modelling_ships(num_particulate_crane, database_arrival_ships);
-        if (penny<sum_cranes_min_penny_particulate){
-            num_cranes_min_penny_particulate=num_particulate_crane;
-            sum_cranes_min_penny_particulate=penny;
-        }
-    }
-    for (int num_containers_crane=0;num_containers_crane<=max_num_cranes;num_containers_crane++) {//кол-во контейнеров
 
-    }
-    for (int num_liquid_crane=0;num_liquid_crane<=max_num_cranes;num_liquid_crane++) {//кол-во жидких кранов
+    vector<int> best_model_particulate;
+    vector<int> best_model_container;
+    vector<int> best_model_liquid;
+    best_model_particulate= calculate_queue(max_num_cranes, particulate_Ships);
+    best_model_container= calculate_queue(max_num_cranes, container_Ships);
+    best_model_liquid= calculate_queue(max_num_cranes, liquid_Ships);
 
-    }
+    cout<<best_model_particulate[0]<<" "<<best_model_particulate[1]<<endl;
+    cout<<best_model_liquid[0]<<endl;
+    cout<<best_model_container[0]<<endl;
 
-    cout<<num_cranes_min_penny_particulate<<endl;
+//    //Сухогруз
+//    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
+//    int sum_cranes_min_penny_particulate=1000000000;// сумма штрафа
+//
+//    for(int num_particulate_crane=0; num_particulate_crane<=max_num_cranes;num_particulate_crane++) {//кол-во сыпучих кранов
+//        int penny= modelling_ships(num_particulate_crane, database_arrival_ships);
+//        if (penny<sum_cranes_min_penny_particulate){
+//            num_cranes_min_penny_particulate=num_particulate_crane;
+//            sum_cranes_min_penny_particulate=penny;
+//        }
+//    }
+//    //КОНТЕЙНЕР
+//    int num_cranes_min_penny_container=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
+//    int sum_cranes_min_penny_container=1000000000;// сумма штрафа
+//
+//    for(int num_container_crane=0; num_container_crane<=max_num_cranes;num_container_crane++) {//кол-во сыпучих кранов
+//        int penny= modelling_ships(num_container_crane, database_arrival_ships);
+//        if (penny<sum_cranes_min_penny_container){
+//            num_cranes_min_penny_container=num_container_crane;
+//            sum_cranes_min_penny_container=penny;
+//        }
+//    }
+//
+//
+//    //Жидкость
+//    int num_cranes_min_penny_liquid=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
+//    int sum_cranes_min_penny_liquid=1000000000;// сумма штрафа
+//
+//    for(int num_liquid_crane=0; num_liquid_crane<=max_num_cranes;num_liquid_crane++) {//кол-во сыпучих кранов
+//        int penny= modelling_ships(num_liquid_crane, database_arrival_ships);
+//        if (penny<sum_cranes_min_penny_liquid){
+//            num_cranes_min_penny_liquid=num_liquid_crane;
+//            sum_cranes_min_penny_liquid=penny;
+//        }
+//    }
+//
+//    cout<<num_cranes_min_penny_particulate<<endl;
+//    cout<<num_cranes_min_penny_container<<endl;
+//    cout<<num_cranes_min_penny_liquid<<endl;
+
 
 
 //                //создаем три вектора, длиной max_num_cranes
@@ -269,10 +338,10 @@ int main() {
 
 
     //подсчет времени выполнения программы
-    unsigned int end_time = clock();
-    unsigned int search_time = end_time - start_time;
-    cout<<search_time/1000<<endl;
-    cout<<n<<endl;
+//    unsigned int end_time = clock();
+//    unsigned int search_time = end_time - start_time;
+//    cout<<search_time/1000<<endl;
+//    cout<<n<<endl;
 
     // Добавление судов в порт
 
