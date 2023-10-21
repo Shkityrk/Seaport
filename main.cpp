@@ -6,6 +6,7 @@
 #include <random>
 #include <algorithm>
 
+
 #include "readfile.cpp"
 
 
@@ -49,59 +50,59 @@ public:
         arrivalDate = ship_arrivalDate;
         arrivalTime=ship_arrivalTime;
 
-//        actualDuration=plannedDuration;
-//        real_arrivalTime = arrivalDate*24 + arrivalTime;
+        actualDuration=plannedDuration;
+        real_arrivalTime = arrivalDate*24 + arrivalTime;
 
 
 
         // Инициализация генератора случайных чисел
 
-        srand(static_cast<unsigned int>(time(0)));
-
-        // Генерация случайного значения для actualDuration (реальная продолжительность разгрузки)
-        actualDuration = plannedDuration +12; //12 ЗАМЕНИТЬ НА РАНДОМ
-
-        //увеличение продолжительности из-за веса
-        if (cargoWeight>=5000){//при большом весе длительность разгрузки увеличивается
-            actualDuration = actualDuration+ (cargoWeight/1000);
-        }
-
-        //увеличение продолжительности из-за погоды
-        if(random(0,2)==1){// если ветренно, длительность увеличивается
-            actualDuration +=cargoWeight%60;
-        }
-        else if (random(0,2)==2){// если идет дождь, длительность увеличивается
-            actualDuration = actualDuration + (cargoWeight%100);
-        }
-        //ВОЛНЫ
-
-        //увеличение продолжительности из-за типа
-        if (cargoType=="Сыпучий"){
-            actualDuration =actualDuration+ (actualDuration%10);
-        }
-        else if (cargoType=="Жидкий"){
-            actualDuration =actualDuration+ (actualDuration%25);
-        }
-        else if(cargoType=="Контейнер"){
-            actualDuration =actualDuration+ (actualDuration%15);
-        }
-
-        //Задержка окончания разгрузки судна(?), см п. 8 ТЗ
-        actualDuration += random(0, 12*24);
-
-
-        // Генерация реального отклонения от расписания
-        int start = -2; // Нижняя граница
-        int end = 9; // Верхняя граница
-        int random_number=random(start, end) ;
-        real_arrivalTime = arrivalDate*24 + arrivalTime + random_number;
+//        srand(static_cast<unsigned int>(time(0)));
+//
+//        // Генерация случайного значения для actualDuration (реальная продолжительность разгрузки)
+//        actualDuration = plannedDuration +12; //12 ЗАМЕНИТЬ НА РАНДОМ
+//
+//        //увеличение продолжительности из-за веса
+//        if (cargoWeight>=5000){//при большом весе длительность разгрузки увеличивается
+//            actualDuration = actualDuration+ (cargoWeight/1000);
+//        }
+//
+//        //увеличение продолжительности из-за погоды
+//        if(random(0,2)==1){// если ветренно, длительность увеличивается
+//            actualDuration +=cargoWeight%60;
+//        }
+//        else if (random(0,2)==2){// если идет дождь, длительность увеличивается
+//            actualDuration = actualDuration + (cargoWeight%100);
+//        }
+//        //ВОЛНЫ
+//
+//        //увеличение продолжительности из-за типа
+//        if (cargoType=="Сыпучий"){
+//            actualDuration =actualDuration+ (actualDuration%10);
+//        }
+//        else if (cargoType=="Жидкий"){
+//            actualDuration =actualDuration+ (actualDuration%25);
+//        }
+//        else if(cargoType=="Контейнер"){
+//            actualDuration =actualDuration+ (actualDuration%15);
+//        }
+//
+//        //Задержка окончания разгрузки судна(?), см п. 8 ТЗ
+//        actualDuration += random(0, 12*24);
+//
+//
+//        // Генерация реального отклонения от расписания
+//        int start = -2; // Нижняя граница
+//        int end = 9; // Верхняя граница
+//        int random_number=random(start, end) ;
+//        real_arrivalTime = arrivalDate*24 + arrivalTime + random_number;
 
     }
 
-    int random(int low, int high)
-    {
-        return low + rand() % (high - low + 1);
-    }
+//    int random(int low, int high)
+//    {
+//        return low + rand() % (high - low + 1);
+//    }
 
 };
 
@@ -177,7 +178,7 @@ int modelling_ships(int num_ports, vector<Ship>& data){
     vector<int> ports(numPorts, 0);
 
 
-    for(int time=0; time<100; time++){//время
+    for(int time=0; time<24*30; time++){//время
         for(int korabl=0; korabl<numShips; korabl++){
             for (int port=0; port<numPorts; port++ ){
                 if ((ships[korabl].unloadingTime!=0)){
@@ -222,6 +223,149 @@ vector<int> calculate_queue(int max_num_cranes, vector<Ship> database_arrival_sh
 }
 
 
+[[maybe_unused]] void visualiztion(){
+    cout<<"Запуск визуализации"<<endl;
+    /*
+     * Сухогрузы
+     * ---------------------1 день------------------------
+     * номер осталось_времени очередь
+     * 1 1д 15ч ===============
+     * 2 2ч     ========
+     * 3
+     * 4
+     * 5
+     * 6
+     * 7
+     * ----------------------------------------------------
+     * Далее 3 день(enter), выход(/away), перейти к(<номер дня>)
+     * >
+     */
+
+    cout<<"Выберите тип корабля:"<<endl<<"1 - Сухогрузы"<<endl<<"2 - Контейнеры"<<endl<<"3 - Жидкости"<<endl;
+    int var;
+    cin>>var;
+    if(var==1){
+        //Сухогрузы
+    }else if(var==2){
+        //Контейнеры
+    }else if(var==3){
+        //Жидкости
+    }else{
+        cout<<"Неверный ввод!"<<endl;
+        return;
+    }
+}
+
+void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
+    /*
+     * Массив количества портов типа. В начальный момент времени все порты свободны, т.е освободятся в 0.
+     * Поэтому их начальное значение=0
+     * Если корабль прибыл, то в ячейку записываем время, когда порт ОСВОБОДИТСЯ, т.е закончит разгрузку последнего корабля
+     *
+     * Проходим циклом по часам и проверяем - свободен ли хотя бы один порт? Если да - загоняем корабль в порт.
+     * Далее удаляем из вектора - он нам больше не нужен.
+     *
+     */
+    int numPorts= num_ports;// Количество портов
+    int totalPenalty = 0;
+    int numShips=data.size(); // Количество кораблей
+    vector<Ship_in_queue> ships(numShips);
+
+    for (int i = 0; i < numShips; ++i) {
+        ships[i].arrivalTime=data[i].real_arrivalTime;
+        ships[i].unloadingTime=data[i].actualDuration;
+    }
+    // отсортировать массив!
+    sort(ships.begin(), ships.end(), compareByArrivalTime);
+
+    vector<int> ports(numPorts, 0);
+    vector<int> len_ports(numPorts, 0);// количество кораблей в очереди на каждый порт
+    int time_penalty;//количество кораблей, стоящих во время time
+
+    for(int time=0; time<24*30; time++){//время
+        time_penalty=0;// обнуляем количество кораблей в очереди.
+        for(int korabl=0; korabl<numShips; korabl++){
+            for (int port=0; port<numPorts; port++ ){
+                if ((ships[korabl].unloadingTime!=0)){
+                    if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
+                        ports[port]=ships[korabl].unloadingTime+time;// порт занят
+                        ships[korabl].unloadingTime=0;//корабль разгружается/разгрузился
+                        break;
+                        ///????????
+                    }
+                }
+            }
+        }
+        for(int Queue_ships=0; Queue_ships<numShips; Queue_ships++){
+            if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
+                totalPenalty+=1;
+                time_penalty+=1;
+            }
+        }
+
+        if(time%24==0){
+            int cout_penalty=time_penalty;
+            int kol_penalty_on_port=cout_penalty/numPorts;
+            cout<<"---------- День "<<time/24+1<< " время "<< time%24<<" ----------"<<endl;
+            for (int p=1; p<=numPorts; p++){ // порты
+
+                int queue_time=ports[p-1]-time;
+                //cout<<p<<" "<< ports[p-1]-time<<" "; // номер порта и время разгрузки
+                cout<<p<<" ";
+                if(queue_time>=0){
+                    cout<<queue_time<<" ";
+                } else{
+                    cout<<0<<" ";
+                }
+                if(time_penalty>0){
+                    if(cout_penalty>=kol_penalty_on_port){
+                        for(int sign_penalty=0; sign_penalty<kol_penalty_on_port;sign_penalty++){
+                            cout<<" = ";
+                        }
+                        cout_penalty=cout_penalty-kol_penalty_on_port;
+                    }else{
+                        for(int sign_penalty=0; sign_penalty<(kol_penalty_on_port-cout_penalty);sign_penalty++){
+                            cout<<" = ";
+                        }
+                    }
+
+//                if(returned_penalty>kol){
+//                    for(int l=0;l<kol; l++){
+//                        cout<<"=";
+//                    }
+//
+//                    returned_penalty-=kol;// количество кораблей в очереди
+//                }
+//                else{
+//                    cout<<returned_penalty<<"<>";
+
+                }
+
+                cout<<endl;
+
+                // ввод числа с клавиатуры
+
+            }
+            cout<<"Day end"<<endl;
+            cout<<"-----------------------------------------------------------------------"<<endl;
+            cout<<endl;
+        }
+
+    };
+
+}
+
+
+void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate){
+//    queue[0]=num_cranes_min_penny;
+//    queue[1]=min_penny;
+    int num_cranes_min_penny=model_particulate[0];
+
+
+    vizualization_modelling_ships(num_cranes_min_penny, data);
+
+}
+
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
@@ -253,7 +397,7 @@ int main() {
 
     unsigned int n=0;// время в генерации
 
-    int max_num_cranes=6;//максимальное кол-во кранов одного вида
+    int max_num_cranes=2;//максимальное кол-во кранов одного вида
 
 
 
@@ -269,8 +413,10 @@ int main() {
     best_model_liquid= calculate_queue(max_num_cranes, liquid_Ships);
 
     cout<<best_model_particulate[0]<<" "<<best_model_particulate[1]<<endl;
-    cout<<best_model_liquid[0]<<endl;
-    cout<<best_model_container[0]<<endl;
+    cout<<best_model_liquid[0]<<" "<<best_model_liquid[1]<<endl;
+    cout<<best_model_container[0]<<" "<<best_model_container[1]<<endl;
+
+    vizualization_particulate(particulate_Ships, best_model_particulate);
 
 //    //Сухогруз
 //    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
