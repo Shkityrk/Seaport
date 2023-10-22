@@ -7,6 +7,7 @@
 #include <algorithm>
 
 
+
 #include "readfile.cpp"
 
 
@@ -146,11 +147,33 @@ vector<Ship> readShipsFromFile(const string& file_path){//чтение данн�
 struct Ship_in_queue {
     int arrivalTime;
     int unloadingTime;
+    string name;
+    int time_in_queue=0;
 };
 
 bool compareByArrivalTime(const Ship_in_queue& a, const Ship_in_queue& b) {
     return a.arrivalTime < b.arrivalTime;
 }
+
+void write_elem_in_output(Ship_in_queue & data){
+
+    std::ofstream outFile("statics.txt", std::ios::app);
+
+    if (!outFile) {
+        cerr << "Не удалось открыть файл для записи." << endl;
+        return;
+    }
+    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
+//************************************************************************************************************************************
+    string name=data.name;
+    int arT = data.arrivalTime;
+    int TinQ=data.time_in_queue;
+    int UT=data.unloadingTime;
+    outFile<<name<<" "<<arT<<" "<<TinQ<<" "<<UT<<endl;
+
+    outFile.close();
+}
+
 
 //Моделирование очереди работы num_ports портов для данных из data. Порты и корабли только для одного ТИПА
 int modelling_ships(int num_ports, vector<Ship>& data){
@@ -169,8 +192,11 @@ int modelling_ships(int num_ports, vector<Ship>& data){
     vector<Ship_in_queue> ships(numShips);
 
     for (int i = 0; i < numShips; ++i) {
-        ships[i].arrivalTime=data[i].real_arrivalTime;
-        ships[i].unloadingTime=data[i].actualDuration;
+        ships[i].arrivalTime=data[i].real_arrivalTime;// время прибытия
+        ships[i].unloadingTime=data[i].actualDuration; // продолжительность разгрузки
+        ships[i].name=data[i].name; //имя
+
+
     }
     // отсортировать массив!
     sort(ships.begin(), ships.end(), compareByArrivalTime);
@@ -184,6 +210,11 @@ int modelling_ships(int num_ports, vector<Ship>& data){
                 if ((ships[korabl].unloadingTime!=0)){
                     if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
                         ports[port]=ships[korabl].unloadingTime+time;
+
+                        //запись элемента в файл-----------------------------------------------------------------------------------
+                        write_elem_in_output(ships[korabl]);
+
+
                         ships[korabl].unloadingTime=0;//зануляем
                         break;
                         ///????????
@@ -194,6 +225,7 @@ int modelling_ships(int num_ports, vector<Ship>& data){
         for(int Queue_ships=0; Queue_ships<numShips; Queue_ships++){
             if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
                 totalPenalty+=1;
+                ships[Queue_ships].time_in_queue+=1;
             }
         }
     };
@@ -220,40 +252,6 @@ vector<int> calculate_queue(int max_num_cranes, vector<Ship> database_arrival_sh
     queue[1]=min_penny;
 
     return queue;
-}
-
-
-[[maybe_unused]] void visualiztion(){
-    cout<<"Запуск визуализации"<<endl;
-    /*
-     * Сухогрузы
-     * ---------------------1 день------------------------
-     * номер осталось_времени очередь
-     * 1 1д 15ч ===============
-     * 2 2ч     ========
-     * 3
-     * 4
-     * 5
-     * 6
-     * 7
-     * ----------------------------------------------------
-     * Далее 3 день(enter), выход(/away), перейти к(<номер дня>)
-     * >
-     */
-
-    cout<<"Выберите тип корабля:"<<endl<<"1 - Сухогрузы"<<endl<<"2 - Контейнеры"<<endl<<"3 - Жидкости"<<endl;
-    int var;
-    cin>>var;
-    if(var==1){
-        //Сухогрузы
-    }else if(var==2){
-        //Контейнеры
-    }else if(var==3){
-        //Жидкости
-    }else{
-        cout<<"Неверный ввод!"<<endl;
-        return;
-    }
 }
 
 void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
@@ -351,25 +349,89 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
             cout<<endl;
         }
 
-    };
-
+    }
+    cout<<"Визуализация завершена."<<endl;
+    cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
+         << endl;
+    cout<<"Или введите другой символ для выхода из программы";
 }
-
 
 void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate){
 //    queue[0]=num_cranes_min_penny;
 //    queue[1]=min_penny;
     int num_cranes_min_penny=model_particulate[0];
-
-
     vizualization_modelling_ships(num_cranes_min_penny, data);
-
 }
+
+void vizualization_container(vector<Ship>& data, vector<int> model_container){
+    int num_cranes_min_penny=model_container[0];
+    vizualization_modelling_ships(num_cranes_min_penny, data);
+}
+
+void vizualization_liquid(vector<Ship>& data, vector<int> model_liquid){
+    int num_cranes_min_penny=model_liquid[0];
+    vizualization_modelling_ships(num_cranes_min_penny, data);
+}
+
+
+void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_models){
+    cout<<"Запуск визуализации"<<endl;
+    /*
+     * Сухогрузы
+     * ---------------------1 день------------------------
+     * номер осталось_времени очередь
+     * 1 1д 15ч ===============
+     * 2 2ч     ========
+     * 3
+     * 4
+     * 5
+     * 6
+     * 7
+     * ----------------------------------------------------
+     * Далее 3 день(enter), выход(/away), перейти к(<номер дня>)
+     * >
+     */
+    vector<Ship> viz_particulate_Ships=data[0];
+    vector<Ship> viz_container_Ships=data[1];
+    vector<Ship> viz_liquid_Ships=data[2];
+
+    const vector<int>& best_model_particulate=best_models[0];
+    const vector<int>& best_model_container=best_models[1];
+    const vector<int>& best_model_liquid=best_models[2];
+
+    int var;
+    cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
+         << endl;
+    cout<<"Или введите другой символ для выхода из программы"<<endl;
+    cin>>var;
+    //цикл
+    while((var==1)||(var==2)||(var==3)) {
+        if (var == 1) {
+            //Сухогрузы
+            vizualization_particulate(viz_particulate_Ships, best_model_particulate);
+        } else if (var == 2) {
+            //Контейнеры
+            vizualization_container(viz_container_Ships, best_model_container);
+        } else if (var == 3) {
+            //Жидкости
+            vizualization_liquid(viz_liquid_Ships, best_model_liquid);
+        } else {
+            return;
+
+        }
+        cin>>var;
+    }
+}
+
+
+
+
 
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
     unsigned int start_time =  clock();
+    unsigned int n=0;// время в генерации
     string path="input.txt";
     // Создание экземпляров судов - будут подтягиваться из файлика
 
@@ -378,6 +440,7 @@ int main() {
     vector<Ship> particulate_Ships;
     vector<Ship> liquid_Ships;
     vector<Ship> container_Ships;
+    //TODO создание файлика statics.txt
 
 
     //сортировка по типу груза
@@ -393,18 +456,10 @@ int main() {
             return 0;
         }
     }
-
-
-    unsigned int n=0;// время в генерации
-
+    vector<vector<Ship>> sorted_Ships={particulate_Ships, container_Ships, liquid_Ships};//для визуализации, набор сортированных векторов
     int max_num_cranes=2;//максимальное кол-во кранов одного вида
 
-
-
-
     //Далее ищем минимальную сумму штрафа и количество портов при этом
-
-
     vector<int> best_model_particulate;
     vector<int> best_model_container;
     vector<int> best_model_liquid;
@@ -416,7 +471,11 @@ int main() {
     cout<<best_model_liquid[0]<<" "<<best_model_liquid[1]<<endl;
     cout<<best_model_container[0]<<" "<<best_model_container[1]<<endl;
 
-    vizualization_particulate(particulate_Ships, best_model_particulate);
+    vector<vector<int>> best_models={best_model_particulate, best_model_container, best_model_liquid};
+
+    //vizualization_particulate(particulate_Ships, best_model_particulate);
+    visualization(sorted_Ships, best_models);
+
 
 //    //Сухогруз
 //    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
