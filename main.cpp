@@ -148,14 +148,15 @@ struct Ship_in_queue {
     int arrivalTime;
     int unloadingTime;
     string name;
-    int time_in_queue=0;
+    int time_in_queue;
+    int start_unloading;
 };
 
 bool compareByArrivalTime(const Ship_in_queue& a, const Ship_in_queue& b) {
     return a.arrivalTime < b.arrivalTime;
 }
 
-void write_elem_in_output(Ship_in_queue & data){
+void write_elem_in_output(Ship_in_queue & data, int time){
 
     std::ofstream outFile("statics.txt", std::ios::app);
 
@@ -167,9 +168,10 @@ void write_elem_in_output(Ship_in_queue & data){
 //************************************************************************************************************************************
     string name=data.name;
     int arT = data.arrivalTime;
-    int TinQ=data.time_in_queue;
+    int TinQ=data.time_in_queue; // сколько стоит в очереди
     int UT=data.unloadingTime;
-    outFile<<name<<" "<<arT<<" "<<TinQ<<" "<<UT<<endl;
+    int real_time=data.start_unloading;
+    outFile<<name<<" "<<arT<<" "<<TinQ<<" "<<time<<" "<<UT<<endl;
 
     outFile.close();
 }
@@ -210,11 +212,6 @@ int modelling_ships(int num_ports, vector<Ship>& data){
                 if ((ships[korabl].unloadingTime!=0)){
                     if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
                         ports[port]=ships[korabl].unloadingTime+time;
-
-                        //запись элемента в файл-----------------------------------------------------------------------------------
-                        write_elem_in_output(ships[korabl]);
-
-
                         ships[korabl].unloadingTime=0;//зануляем
                         break;
                         ///????????
@@ -225,7 +222,6 @@ int modelling_ships(int num_ports, vector<Ship>& data){
         for(int Queue_ships=0; Queue_ships<numShips; Queue_ships++){
             if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
                 totalPenalty+=1;
-                ships[Queue_ships].time_in_queue+=1;
             }
         }
     };
@@ -272,6 +268,7 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
     for (int i = 0; i < numShips; ++i) {
         ships[i].arrivalTime=data[i].real_arrivalTime;
         ships[i].unloadingTime=data[i].actualDuration;
+        ships[i].name=data[i].name; //имя
     }
     // отсортировать массив!
     sort(ships.begin(), ships.end(), compareByArrivalTime);
@@ -287,9 +284,18 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
                 if ((ships[korabl].unloadingTime!=0)){
                     if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
                         ports[port]=ships[korabl].unloadingTime+time;// порт занят
+
+
+                        //запись элемента в файл-----------------------------------------------------------------------------------
+                        if(ships[korabl].unloadingTime!=0) {
+                            ships[korabl].start_unloading=time;
+                            write_elem_in_output(ships[korabl], time);
+                        }
+
                         ships[korabl].unloadingTime=0;//корабль разгружается/разгрузился
                         break;
                         ///????????
+
                     }
                 }
             }
@@ -298,13 +304,14 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
             if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
                 totalPenalty+=1;
                 time_penalty+=1;
+                ships[Queue_ships].time_in_queue+=1;
             }
         }
 
         if(time%24==0){
             int cout_penalty=time_penalty;
             int kol_penalty_on_port=cout_penalty/numPorts;
-            cout<<"---------- День "<<time/24+1<< " время "<< time%24<<" ----------"<<endl;
+            cout<<"---------------------------- День "<<time/24+1<< " время "<< time%24<<" ----------------------------"<<endl;
             for (int p=1; p<=numPorts; p++){ // порты
 
                 int queue_time=ports[p-1]-time;
@@ -345,7 +352,7 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
 
             }
             cout<<"Day end"<<endl;
-            cout<<"-----------------------------------------------------------------------"<<endl;
+            cout<<"------------------------------------------------------------------------"<<endl;
             cout<<endl;
         }
 
@@ -360,16 +367,46 @@ void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate
 //    queue[0]=num_cranes_min_penny;
 //    queue[1]=min_penny;
     int num_cranes_min_penny=model_particulate[0];
+    //запись шапки
+    std::ofstream outFile("statics.txt", std::ios::app);
+    if (!outFile) {
+        cerr << "Не удалось открыть файл для записи." << endl;
+        return;
+    }
+    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
+    outFile<<"=======================Выбраны Сухогрузы======================="<<endl;
+    outFile.close();
+
     vizualization_modelling_ships(num_cranes_min_penny, data);
 }
 
 void vizualization_container(vector<Ship>& data, vector<int> model_container){
     int num_cranes_min_penny=model_container[0];
+    //запись шапки
+    std::ofstream outFile("statics.txt", std::ios::app);
+    if (!outFile) {
+        cerr << "Не удалось открыть файл для записи." << endl;
+        return;
+    }
+    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
+    outFile<<"=======================Выбраны Контейнеры======================="<<endl;
+    outFile.close();
+
     vizualization_modelling_ships(num_cranes_min_penny, data);
 }
 
 void vizualization_liquid(vector<Ship>& data, vector<int> model_liquid){
     int num_cranes_min_penny=model_liquid[0];
+    //запись шапки
+    std::ofstream outFile("statics.txt", std::ios::app);
+    if (!outFile) {
+        cerr << "Не удалось открыть файл для записи." << endl;
+        return;
+    }
+    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
+    outFile<<"=======================Выбраны Жидкости======================="<<endl;
+    outFile.close();
+
     vizualization_modelling_ships(num_cranes_min_penny, data);
 }
 
@@ -442,6 +479,13 @@ int main() {
     vector<Ship> container_Ships;
     //TODO создание файлика statics.txt
 
+    std::ofstream ofs;
+    ofs.open("statics.txt", std::ofstream::out | std::ofstream::trunc);
+    ofs<<"Список произведенных разгрузок"<<endl;
+    ofs<<"Вид данных в файле: <Название корабля> <Время прихода в порт в часах, начиная от начала отсчета> <Время ожидания в очереди на разгрузку> <Продолжительность разгрузки>";
+    ofs<<"Каждый столбец дня пронумерован - это номер порта, затем время, когда порт освободится от разгружаемого корабля"<<endl;
+    ofs<<"Символ = означает корабль в очереди на разгрузку в данный порт"<<endl;
+    ofs.close();
 
     //сортировка по типу груза
     for (const Ship& ship : database_arrival_ships) {
