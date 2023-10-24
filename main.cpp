@@ -1,17 +1,99 @@
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <cstdlib>
 #include <ctime>
-#include <random>
 #include <algorithm>
-
-
-
-#include "readfile.cpp"
-
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <windows.h>
 
 using namespace std;
+
+/*
+ * Глобальные переменные суммируются в процессе моделирования. Они необходимы для итоговой статистики
+ */
+int num_korabl=0;// количество кораблей
+//для нахождения средней длины очереди
+int global_count_queue=0;
+int global_len_queue=0;
+
+//для нахождения максимальной задержки разгрузки
+int max_duration=0;
+
+//время ожидания в очереди
+int global_sum_time_queue=0;
+int global_len_time_queue=0;
+
+// средняя задержка разгрузки
+int sum_duration=0;
+int len_duration=0;
+
+//общая сумма штрафа
+int all_penny=0;
+
+/*
+ * Генерация файла
+ */
+int randomInRange(int min, int max) {
+    return min + rand() % (max - min + 1);
+}
+
+// Генерация случайной строки
+string generateRandomString(int length) {
+    static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    std::string randomString;
+    for (int i = 0; i < length; ++i) {
+        randomString += alphabet[randomInRange(0, sizeof(alphabet) - 2)];
+    }
+    return randomString;
+}
+
+int generator() {
+    int n;
+    std::cout << "Введите количество строк (n): ";
+    std::cin >> n;
+
+    std::ofstream outFile("input.txt");
+    if (!outFile.is_open()) {
+        std::cerr << "Не удалось открыть файл для записи." << std::endl;
+        return 1;
+    }
+
+    // Инициализация генератора случайных чисел
+    srand(static_cast<unsigned>(time(nullptr)));
+
+    for (int i = 0; i < n; ++i) {
+        int day = randomInRange(1, 30);
+        int hour = randomInRange(0, 23);
+        std::string shipName = generateRandomString(10);  // Генерируем случайное имя корабля
+        std::string shipType;
+        int weight = randomInRange(1, 1000);  // Генерируем случайный вес в тоннах
+        int unloadTime = randomInRange(1, 24);  // Генерируем время разгрузки в часах
+
+        int arrivalTime = randomInRange(1, 719);  // Генерируем прибытие в пределах 30 дней
+        int departureTime = arrivalTime + unloadTime;
+
+        // Случайным образом выбираем тип корабля
+        int typeChoice = randomInRange(1, 3);
+        if (typeChoice == 1) {
+            shipType = "Сухогруз";
+        } else if (typeChoice == 2) {
+            shipType = "Контейнер";
+        } else {
+            shipType = "Жидкий";
+        }
+
+        // Записываем данные в файл
+        outFile << day << ' ' << hour << ' ' << shipName << ' ' << shipType << ' ' << weight << ' ' << arrivalTime << ' ' << departureTime << '\n';
+    }
+
+    outFile.close();
+    std::cout << "Файл 'input.txt' успешно создан." << std::endl;
+
+    return 0;
+}
+
 
 // Определение класса для судов
 /**
@@ -35,80 +117,75 @@ public:
     int actualDuration; // реальная продолжительность разгрузки, ч
     int arrivalDate; // Время прибытия в днях после начала
     int arrivalTime; // Время прибытия в днях после начала
-
     int real_arrivalTime; // Время прибытия в часах после начала с учетом опоздания или досрочного прибытия
-
-
-
-
 
     Ship(int ship_arrivalDate, int ship_arrivalTime, string ship_n,string ship_cargoType, int ship_cargoWeight, int ship_plannedDuration) {//конструктор
         name = ship_n;
         cargoType = ship_cargoType;
         cargoWeight = ship_cargoWeight;
         plannedDuration = ship_plannedDuration;
-         //обработка в функции
+        //обработка в функции
         arrivalDate = ship_arrivalDate;
         arrivalTime=ship_arrivalTime;
-
-        actualDuration=plannedDuration;
-        real_arrivalTime = arrivalDate*24 + arrivalTime;
-
-
+//      actualDuration=plannedDuration;
+//      real_arrivalTime = arrivalDate*24 + arrivalTime;
 
         // Инициализация генератора случайных чисел
+        srand(static_cast<unsigned int>(time(0)));
 
-//        srand(static_cast<unsigned int>(time(0)));
-//
-//        // Генерация случайного значения для actualDuration (реальная продолжительность разгрузки)
-//        actualDuration = plannedDuration +12; //12 ЗАМЕНИТЬ НА РАНДОМ
-//
-//        //увеличение продолжительности из-за веса
-//        if (cargoWeight>=5000){//при большом весе длительность разгрузки увеличивается
-//            actualDuration = actualDuration+ (cargoWeight/1000);
-//        }
-//
-//        //увеличение продолжительности из-за погоды
-//        if(random(0,2)==1){// если ветренно, длительность увеличивается
-//            actualDuration +=cargoWeight%60;
-//        }
-//        else if (random(0,2)==2){// если идет дождь, длительность увеличивается
-//            actualDuration = actualDuration + (cargoWeight%100);
-//        }
-//        //ВОЛНЫ
-//
-//        //увеличение продолжительности из-за типа
-//        if (cargoType=="Сыпучий"){
-//            actualDuration =actualDuration+ (actualDuration%10);
-//        }
-//        else if (cargoType=="Жидкий"){
-//            actualDuration =actualDuration+ (actualDuration%25);
-//        }
-//        else if(cargoType=="Контейнер"){
-//            actualDuration =actualDuration+ (actualDuration%15);
-//        }
-//
-//        //Задержка окончания разгрузки судна(?), см п. 8 ТЗ
-//        actualDuration += random(0, 12*24);
-//
-//
-//        // Генерация реального отклонения от расписания
-//        int start = -2; // Нижняя граница
-//        int end = 9; // Верхняя граница
-//        int random_number=random(start, end) ;
-//        real_arrivalTime = arrivalDate*24 + arrivalTime + random_number;
+        // Генерация случайного значения для actualDuration (реальная продолжительность разгрузки)
+        actualDuration = plannedDuration + random(0,12);
 
+        //увеличение продолжительности из-за веса
+        if (cargoWeight>=5000){//при большом весе длительность разгрузки увеличивается
+            actualDuration = actualDuration+ (cargoWeight/1000);
+        }
+
+        //увеличение продолжительности из-за погоды
+        if(random(0,2)==1){// если ветренно, длительность увеличивается
+            actualDuration +=cargoWeight%60;
+        }
+        else if (random(0,2)==2){// если идет дождь, длительность увеличивается
+            actualDuration = actualDuration + (cargoWeight%100);
+        }
+
+        //увеличение продолжительности из-за типа
+        if (cargoType=="Сыпучий"){
+            actualDuration =actualDuration+ (actualDuration%10);
+        }
+        else if (cargoType=="Жидкий"){
+            actualDuration =actualDuration+ (actualDuration%25);
+        }
+        else if(cargoType=="Контейнер"){
+            actualDuration =actualDuration+ (actualDuration%15);
+        }
+
+        //Задержка окончания разгрузки судна, см п. 8 ТЗ
+        actualDuration += random(0, 12*24);
+
+        // Генерация реального отклонения от расписания
+        int start = -2; // Нижняя граница
+        int end = 9; // Верхняя граница
+        int random_number=random(start, end) ;
+        real_arrivalTime = arrivalDate*24 + arrivalTime + random_number;
+
+        if(max_duration<(abs(actualDuration-plannedDuration))){
+            max_duration=abs(actualDuration-plannedDuration);
+        }
+
+        //вычисления для итоговой статистки
+        sum_duration+=actualDuration;
+        len_duration+=1;
     }
-
-//    int random(int low, int high)
-//    {
-//        return low + rand() % (high - low + 1);
-//    }
-
+    //Генерация цисла в промежутке от до
+    int random(int low, int high)
+    {
+        return low + rand() % (high - low + 1);
+    }
 };
 
-
-vector<Ship> readShipsFromFile(const string& file_path){//чтение данных из файла и создание вектора
+//Чтение данных из файла и создание вектора
+vector<Ship> readShipsFromFile(const string& file_path){
 //    int count_lines=length_file(file_path);
     ifstream file("input.txt");//open file
     vector<Ship> arriving_ships_database;
@@ -136,14 +213,6 @@ vector<Ship> readShipsFromFile(const string& file_path){//чтение данн�
     return arriving_ships_database;
 }
 
-//Изменение данных в файле
-// Определение класса для разгрузочных кранов
-// Метод для начала разгрузки судна
-// Метод для завершения разгрузки судна
-// Оптимизация количества кранов
-// Перераспределение кранов между разными типами груза
-// Определение класса для модели морского порта
-
 struct Ship_in_queue {
     int arrivalTime;
     int unloadingTime;
@@ -164,47 +233,33 @@ void write_elem_in_output(Ship_in_queue & data, int time){
         cerr << "Не удалось открыть файл для записи." << endl;
         return;
     }
-    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
-//************************************************************************************************************************************
     string name=data.name;
     int arT = data.arrivalTime;
     int TinQ=data.time_in_queue; // сколько стоит в очереди
     int UT=data.unloadingTime;
     int real_time=data.start_unloading;
-    outFile<<name<<" "<<arT<<" "<<TinQ<<" "<<time<<" "<<UT<<endl;
+    outFile<<"* "<<name<<" "<<arT<<" "<<TinQ<<" "<<time<<" "<<UT<<endl;
+    global_sum_time_queue+=TinQ;
+    global_len_time_queue+=1;
 
     outFile.close();
 }
 
 
-//Моделирование очереди работы num_ports портов для данных из data. Порты и корабли только для одного ТИПА
 int modelling_ships(int num_ports, vector<Ship>& data){
-    /*
-     * Массив количества портов типа. В начальный момент времени все порты свободны, т.е освободятся в 0.
-     * Поэтому их начальное значение=0
-     * Если корабль прибыл, то в ячейку записываем время, когда порт ОСВОБОДИТСЯ, т.е закончит разгрузку последнего корабля
-     *
-     * Проходим циклом по часам и проверяем - свободен ли хотя бы один порт? Если да - загоняем корабль в порт.
-     * Далее удаляем из вектора - он нам больше не нужен.
-     *
-     */
     int numPorts= num_ports;// Количество портов
     int totalPenalty = 0;
     int numShips=data.size(); // Количество кораблей
     vector<Ship_in_queue> ships(numShips);
-
     for (int i = 0; i < numShips; ++i) {
         ships[i].arrivalTime=data[i].real_arrivalTime;// время прибытия
         ships[i].unloadingTime=data[i].actualDuration; // продолжительность разгрузки
         ships[i].name=data[i].name; //имя
-
-
     }
     // отсортировать массив!
     sort(ships.begin(), ships.end(), compareByArrivalTime);
 
     vector<int> ports(numPorts, 0);
-
 
     for(int time=0; time<24*30; time++){//время
         for(int korabl=0; korabl<numShips; korabl++){
@@ -212,9 +267,8 @@ int modelling_ships(int num_ports, vector<Ship>& data){
                 if ((ships[korabl].unloadingTime!=0)){
                     if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
                         ports[port]=ships[korabl].unloadingTime+time;
-                        ships[korabl].unloadingTime=0;//зануляем
+                        ships[korabl].unloadingTime=0;//зануляем элемент, который разгрузился/разгружается и больше его не учитываем
                         break;
-                        ///????????
                     }
                 }
             }
@@ -228,14 +282,14 @@ int modelling_ships(int num_ports, vector<Ship>& data){
     return totalPenalty;
 }
 
+//Вычисление очереди при наличии количества кранов и вектора из прибывших кораблей
 vector<int> calculate_queue(int max_num_cranes, vector<Ship> database_arrival_ships){
     vector<int> queue(2);
     vector<int> sum_cranes_min_penny(max_num_cranes, 0);
 
     int num_cranes_min_penny;//количество кранов типа при котором сумма штрафов минимальная
-    int min_penny=INT_MAX;
-    int penny;
-
+    int min_penny=INT_MAX;//максимум
+    int penny;//штраф
 
     for(int num_crane=1; num_crane<=max_num_cranes;++num_crane) {//кол-во сыпучих кранов
         penny=modelling_ships(num_crane, database_arrival_ships);
@@ -246,7 +300,6 @@ vector<int> calculate_queue(int max_num_cranes, vector<Ship> database_arrival_sh
     }
     queue[0]=num_cranes_min_penny;
     queue[1]=min_penny;
-
     return queue;
 }
 
@@ -254,11 +307,9 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
     /*
      * Массив количества портов типа. В начальный момент времени все порты свободны, т.е освободятся в 0.
      * Поэтому их начальное значение=0
-     * Если корабль прибыл, то в ячейку записываем время, когда порт ОСВОБОДИТСЯ, т.е закончит разгрузку последнего корабля
-     *
+     * Если корабль прибыл, то в ячейку записываем время, когда порт ОСВОБОДИТСЯ, т.е закончит разгрузку последнего корабль
      * Проходим циклом по часам и проверяем - свободен ли хотя бы один порт? Если да - загоняем корабль в порт.
      * Далее удаляем из вектора - он нам больше не нужен.
-     *
      */
     int numPorts= num_ports;// Количество портов
     int totalPenalty = 0;
@@ -284,9 +335,7 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
                 if ((ships[korabl].unloadingTime!=0)){
                     if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
                         ports[port]=ships[korabl].unloadingTime+time;// порт занят
-
-
-                        //запись элемента в файл-----------------------------------------------------------------------------------
+                        //запись элемента в файл
                         if(ships[korabl].unloadingTime!=0) {
                             ships[korabl].start_unloading=time;
                             write_elem_in_output(ships[korabl], time);
@@ -294,8 +343,6 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
 
                         ships[korabl].unloadingTime=0;//корабль разгружается/разгрузился
                         break;
-                        ///????????
-
                     }
                 }
             }
@@ -305,27 +352,31 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
                 totalPenalty+=1;
                 time_penalty+=1;
                 ships[Queue_ships].time_in_queue+=1;
+                num_korabl+=1;
             }
         }
-
+        //если новый день - выводим статистику
         if(time%24==0){
             int cout_penalty=time_penalty;
             int kol_penalty_on_port=cout_penalty/numPorts;
+            global_len_queue+=1;
+            global_count_queue+=kol_penalty_on_port;
             cout<<"---------------------------- День "<<time/24+1<< " время "<< time%24<<" ----------------------------"<<endl;
             for (int p=1; p<=numPorts; p++){ // порты
 
                 int queue_time=ports[p-1]-time;
-                //cout<<p<<" "<< ports[p-1]-time<<" "; // номер порта и время разгрузки
                 cout<<p<<" ";
                 if(queue_time>=0){
                     cout<<queue_time<<" ";
                 } else{
                     cout<<0<<" ";
                 }
+
                 if(time_penalty>0){
                     if(cout_penalty>=kol_penalty_on_port){
                         for(int sign_penalty=0; sign_penalty<kol_penalty_on_port;sign_penalty++){
                             cout<<" = ";
+                            //-------------------------------------------------------------------------------------------------------------------------------
                         }
                         cout_penalty=cout_penalty-kol_penalty_on_port;
                     }else{
@@ -333,23 +384,9 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
                             cout<<" = ";
                         }
                     }
-
-//                if(returned_penalty>kol){
-//                    for(int l=0;l<kol; l++){
-//                        cout<<"=";
-//                    }
-//
-//                    returned_penalty-=kol;// количество кораблей в очереди
-//                }
-//                else{
-//                    cout<<returned_penalty<<"<>";
-
                 }
-
                 cout<<endl;
-
                 // ввод числа с клавиатуры
-
             }
             cout<<"Day end"<<endl;
             cout<<"------------------------------------------------------------------------"<<endl;
@@ -357,10 +394,11 @@ void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
         }
 
     }
+    all_penny+=totalPenalty;
     cout<<"Визуализация завершена."<<endl;
     cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
          << endl;
-    cout<<"Или введите другой символ для выхода из программы";
+    cout<<"Или введите другой символ для выхода из программы"<<endl;
 }
 
 void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate){
@@ -425,8 +463,8 @@ void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_m
      * 6
      * 7
      * ----------------------------------------------------
-     * Далее 3 день(enter), выход(/away), перейти к(<номер дня>)
-     * >
+     * Далее 3 день(enter), выход(/away)
+     * _
      */
     vector<Ship> viz_particulate_Ships=data[0];
     vector<Ship> viz_container_Ships=data[1];
@@ -454,31 +492,101 @@ void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_m
             vizualization_liquid(viz_liquid_Ships, best_model_liquid);
         } else {
             return;
-
         }
         cin>>var;
     }
 }
+/*итоговая статистика
+ *
+*/
 
+//количество разгруженных кораблей
+int num_corabl(){
+    std::ifstream inputFile("statics.txt"); // Замените "input.txt" на имя вашего файла
+    if (!inputFile.is_open()) {
+        std::cerr << "Не удалось открыть файл." << std::endl;
+        return 1;
+    }
 
+    int asteriskCount=0; // Счетчик звездочек
+        std::string line;
 
+    while (std::getline(inputFile, line)) {
+        if (!line.empty()) {
+            // Проверяем первый символ в строке
+            if (line[0] == '*') {
+                asteriskCount++;
+            }
+        }
+    }
+    inputFile.close();
+    return asteriskCount;
+};
 
+//средняя длина очереди
+double average_len_queue(){
 
+    return (double) global_count_queue/global_len_queue;
+}
+
+//среднее время ожидания
+double average_time_queue(){
+    return (double) global_sum_time_queue/global_len_time_queue;
+}
+
+// макс задержка разгрузки = max_duration
+
+// средняя задержка разгрузки
+double average_duration(){
+    return sum_duration/len_duration;
+}
+
+//общая сумма штрафа (по условию)
+int absolut_penny(){
+    return all_penny*2;
+}
+
+//вывод статистики
+int final_statistics(){
+    std::ofstream outFile("statics.txt", std::ios::app);
+    if (!outFile) {
+        cerr << "Не удалось открыть файл для записи." << endl;
+        return 0;
+    }
+
+    outFile<<"=======================Итоговая статистика======================="<<endl;
+    outFile<<"Число разгруженных судов: "<<num_corabl()<<endl;
+    outFile<<"Средняя длина очереди на разгрузку: "<<average_len_queue()<<endl;
+    outFile<<"Среднее время ожидания в очереди: "<<average_time_queue()<<endl;
+    outFile<<"Максимальная задержка разгрузки: "<<max_duration<<endl;
+    outFile<<"Средняя задержка разгрузки: "<<average_duration()<<endl;
+    outFile<<"Общая сумма выплаченного штрафа: "<<absolut_penny()<<endl;
+    outFile.close();
+    cout<<"Статистика записана в файл statics.txt"<<endl;
+
+    return 0;
+}
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
+
+    //для проверки производительности - таймер выполнения программы
     unsigned int start_time =  clock();
     unsigned int n=0;// время в генерации
-    string path="input.txt";
-    // Создание экземпляров судов - будут подтягиваться из файлика
 
+
+    cout<<"Генерация файла"<<endl;
+    generator();
+    cout<<"Файл сгенерирован"<<endl;
+
+    // Создание экземпляров судов - будут подтягиваться из сгенерированного файлика
     vector<Ship> database_arrival_ships= readShipsFromFile("input.txt");// получаем данные из файла
     //создаем пустые вектора под каждый тип груза
     vector<Ship> particulate_Ships;
     vector<Ship> liquid_Ships;
     vector<Ship> container_Ships;
-    //TODO создание файлика statics.txt
 
+    //оформляем файл, пишем пояснение
     std::ofstream ofs;
     ofs.open("statics.txt", std::ofstream::out | std::ofstream::trunc);
     ofs<<"Список произведенных разгрузок"<<endl;
@@ -501,7 +609,7 @@ int main() {
         }
     }
     vector<vector<Ship>> sorted_Ships={particulate_Ships, container_Ships, liquid_Ships};//для визуализации, набор сортированных векторов
-    int max_num_cranes=2;//максимальное кол-во кранов одного вида
+    int max_num_cranes=50;//максимальное кол-во кранов одного вида
 
     //Далее ищем минимальную сумму штрафа и количество портов при этом
     vector<int> best_model_particulate;
@@ -511,101 +619,18 @@ int main() {
     best_model_container= calculate_queue(max_num_cranes, container_Ships);
     best_model_liquid= calculate_queue(max_num_cranes, liquid_Ships);
 
-    cout<<best_model_particulate[0]<<" "<<best_model_particulate[1]<<endl;
-    cout<<best_model_liquid[0]<<" "<<best_model_liquid[1]<<endl;
-    cout<<best_model_container[0]<<" "<<best_model_container[1]<<endl;
+//    тестовые параметры num_cranes_min_penny min_penny
+//    cout<<best_model_particulate[0]<<" "<<best_model_particulate[1]<<endl;
+//    cout<<best_model_liquid[0]<<" "<<best_model_liquid[1]<<endl;
+//    cout<<best_model_container[0]<<" "<<best_model_container[1]<<endl;
 
     vector<vector<int>> best_models={best_model_particulate, best_model_container, best_model_liquid};
 
-    //vizualization_particulate(particulate_Ships, best_model_particulate);
     visualization(sorted_Ships, best_models);
 
+    //итоговая статистика
+    final_statistics();
 
-//    //Сухогруз
-//    int num_cranes_min_penny_particulate=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
-//    int sum_cranes_min_penny_particulate=1000000000;// сумма штрафа
-//
-//    for(int num_particulate_crane=0; num_particulate_crane<=max_num_cranes;num_particulate_crane++) {//кол-во сыпучих кранов
-//        int penny= modelling_ships(num_particulate_crane, database_arrival_ships);
-//        if (penny<sum_cranes_min_penny_particulate){
-//            num_cranes_min_penny_particulate=num_particulate_crane;
-//            sum_cranes_min_penny_particulate=penny;
-//        }
-//    }
-//    //КОНТЕЙНЕР
-//    int num_cranes_min_penny_container=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
-//    int sum_cranes_min_penny_container=1000000000;// сумма штрафа
-//
-//    for(int num_container_crane=0; num_container_crane<=max_num_cranes;num_container_crane++) {//кол-во сыпучих кранов
-//        int penny= modelling_ships(num_container_crane, database_arrival_ships);
-//        if (penny<sum_cranes_min_penny_container){
-//            num_cranes_min_penny_container=num_container_crane;
-//            sum_cranes_min_penny_container=penny;
-//        }
-//    }
-//
-//
-//    //Жидкость
-//    int num_cranes_min_penny_liquid=0;//количество кранов типа СУХОГРУЗ при котором сумма штрафов минимальная
-//    int sum_cranes_min_penny_liquid=1000000000;// сумма штрафа
-//
-//    for(int num_liquid_crane=0; num_liquid_crane<=max_num_cranes;num_liquid_crane++) {//кол-во сыпучих кранов
-//        int penny= modelling_ships(num_liquid_crane, database_arrival_ships);
-//        if (penny<sum_cranes_min_penny_liquid){
-//            num_cranes_min_penny_liquid=num_liquid_crane;
-//            sum_cranes_min_penny_liquid=penny;
-//        }
-//    }
-//
-//    cout<<num_cranes_min_penny_particulate<<endl;
-//    cout<<num_cranes_min_penny_container<<endl;
-//    cout<<num_cranes_min_penny_liquid<<endl;
-
-
-
-//                //создаем три вектора, длиной max_num_cranes
-//                vector<int> queue_particulate_crane(max_num_cranes, 0);//очередь
-//                vector<int> queue_containers_crane(max_num_cranes, 0);
-//                vector<int> queue_liquid_crane(max_num_cranes, 0);
-//                for (int time=0; time<=24*30; time++){
-//                    n++;
-//                }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //подсчет времени выполнения программы
-//    unsigned int end_time = clock();
-//    unsigned int search_time = end_time - start_time;
-//    cout<<search_time/1000<<endl;
-//    cout<<n<<endl;
-
-    // Добавление судов в порт
-
-    // Дальнейшая симуляция порта и работа с моделью порта.
-
-
-    // Добавление кранов в модель порта
-
-    // Запуск симуляции
-
-
-    // Оптимизация
-
-    // Визуализация (при необходимости)
-
-
+    //все
     return 0;
 }
