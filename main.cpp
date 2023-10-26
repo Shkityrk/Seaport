@@ -1,119 +1,25 @@
-#include <iostream>
-#include <vector>
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <windows.h>
+#include <iostream>  // Библиотека для ввода и вывода данных. Позволяет работать с потоками ввода и вывода, такими как cin и cout.
+#include <vector>  // Библиотека, предоставляющая контейнер std::vector для хранения и управления динамическими массивами данных.
+#include <cstdlib>  // Библиотека, содержащая функции для управления памятью, выполнения операций с псевдослучайными числами и другими стандартными функциями.
+#include <ctime>  // Библиотека, предоставляющая функции для работы со временем и датами, такие как time(), которая часто используется для генерации случайных чисел на основе времени.
+#include <algorithm>  // Библиотека, содержащая различные алгоритмы обработки и сортировки структур данных, такие как std::sort() и std::find().
+#include <fstream>  // Библиотека для работы с файлами. Позволяет открывать, читать и записывать данные в файлы.
+#include <string>  // Библиотека, предоставляющая структуры данных и функции для работы со строками, такие как std::string.
+#include <sstream>  // Библиотека, предоставляющая классы и функции для работы с потоками строк, что полезно при преобразовании данных между строками и другими типами данных.
+#include <windows.h>  // Библиотека для операций, специфичных для операционной системы Windows. Здесь она, вероятно, используется для управления окнами и процессами в Windows-среде.
+
 
 #include "./globals.h"
 #include "Ship.h"
 #include "./generator.h"
 #include "./readfile.h"
-#include "./Ship_in_queue.h"
-#include "./write_file.h"
 #include "./modelling.h"
 #include "./vizualization.h"
 using namespace std;
 
 
-void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate){
-//    queue[0]=num_cranes_min_penny;
-//    queue[1]=min_penny;
-    int num_cranes_min_penny=model_particulate[0];
-    //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
-    if (!outFile) {
-        cerr << "Не удалось открыть файл для записи." << endl;
-        return;
-    }
-    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
-    outFile<<"=======================Выбраны Сухогрузы======================="<<endl;
-    outFile.close();
-
-    vizualization_modelling_ships(num_cranes_min_penny, data);
-}
-
-void vizualization_container(vector<Ship>& data, vector<int> model_container){
-    int num_cranes_min_penny=model_container[0];
-    //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
-    if (!outFile) {
-        cerr << "Не удалось открыть файл для записи." << endl;
-        return;
-    }
-    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
-    outFile<<"=======================Выбраны Контейнеры======================="<<endl;
-    outFile.close();
-
-    vizualization_modelling_ships(num_cranes_min_penny, data);
-}
-
-void vizualization_liquid(vector<Ship>& data, vector<int> model_liquid){
-    int num_cranes_min_penny=model_liquid[0];
-    //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
-    if (!outFile) {
-        cerr << "Не удалось открыть файл для записи." << endl;
-        return;
-    }
-    // Здесь вы можете записать элемент в файл, который будет добавлен к существующему содержимому
-    outFile<<"=======================Выбраны Жидкости======================="<<endl;
-    outFile.close();
-
-    vizualization_modelling_ships(num_cranes_min_penny, data);
-}
 
 
-void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_models){
-    cout<<"Запуск визуализации"<<endl;
-    /*
-     * Сухогрузы
-     * ---------------------1 день------------------------
-     * номер осталось_времени очередь
-     * 1 1д 15ч ===============
-     * 2 2ч     ========
-     * 3
-     * 4
-     * 5
-     * 6
-     * 7
-     * ----------------------------------------------------
-     * Далее 3 день(enter), выход(/away)
-     * _
-     */
-    vector<Ship> viz_particulate_Ships=data[0];
-    vector<Ship> viz_container_Ships=data[1];
-    vector<Ship> viz_liquid_Ships=data[2];
-
-    const vector<int>& best_model_particulate=best_models[0];
-    const vector<int>& best_model_container=best_models[1];
-    const vector<int>& best_model_liquid=best_models[2];
-
-    int var;
-    cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
-         << endl;
-    cout<<"Или введите другой символ для выхода из программы"<<endl;
-    cin>>var;
-    //цикл
-    while((var==1)||(var==2)||(var==3)) {
-        if (var == 1) {
-            //Сухогрузы
-            vizualization_particulate(viz_particulate_Ships, best_model_particulate);
-        } else if (var == 2) {
-            //Контейнеры
-            vizualization_container(viz_container_Ships, best_model_container);
-        } else if (var == 3) {
-            //Жидкости
-            vizualization_liquid(viz_liquid_Ships, best_model_liquid);
-        } else {
-            return;
-        }
-        cin>>var;
-    }
-}
 /*итоговая статистика
  *
 */
@@ -163,7 +69,7 @@ int absolut_penny(){
     return all_penny*2;
 }
 
-//вывод статистики
+//вывод статистики с использованием глобальных переменных
 int final_statistics(){
     std::ofstream outFile("statics.txt", std::ios::app);
     if (!outFile) {

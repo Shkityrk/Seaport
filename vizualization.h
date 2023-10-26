@@ -5,4 +5,4 @@
 #pragma once
 #include "Ship.h"
 
-void vizualization_modelling_ships(int num_ports, vector<Ship>& data);
+void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_models);

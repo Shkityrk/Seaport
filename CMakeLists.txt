@@ -19,6 +19,10 @@ add_executable(seaport main.cpp
         Ship_in_queue.h
         modelling.cpp
         modelling.h
+        vizualization_modelling_ships.cpp
+        vizualization_modelling_ships.h
+        vizualization_types.cpp
+        vizualization_types.h
         vizualization.cpp
         vizualization.h
 )
