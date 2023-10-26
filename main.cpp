@@ -8,29 +8,12 @@
 #include <sstream>
 #include <windows.h>
 
+#include "./globals.h"
+#include "Ship.h"
+
 using namespace std;
 
-/*
- * Глобальные переменные суммируются в процессе моделирования. Они необходимы для итоговой статистики
- */
-int num_korabl=0;// количество кораблей
-//для нахождения средней длины очереди
-int global_count_queue=0;
-int global_len_queue=0;
 
-//для нахождения максимальной задержки разгрузки
-int max_duration=0;
-
-//время ожидания в очереди
-int global_sum_time_queue=0;
-int global_len_time_queue=0;
-
-// средняя задержка разгрузки
-int sum_duration=0;
-int len_duration=0;
-
-//общая сумма штрафа
-int all_penny=0;
 
 /*
  * Генерация файла
@@ -45,6 +28,7 @@ string generateRandomString(int length) {
     std::string randomString;
     for (int i = 0; i < length; ++i) {
         randomString += alphabet[randomInRange(0, sizeof(alphabet) - 2)];
+
     }
     return randomString;
 }
@@ -90,99 +74,10 @@ int generator() {
 
     outFile.close();
     std::cout << "Файл 'input.txt' успешно создан." << std::endl;
-
     return 0;
 }
 
 
-// Определение класса для судов
-/**
- * @param name имя корабля
- * @param cargoType тип груза
- * @param cargoWeight вес груза
- * @param plannedDuration планируемая продолжительность разгрузки, ч
- * @param actualDuration реальная продолжительность разгрузки, ч
- * @param arrivalDate Дата прибытия
- * @param waitingTime Время ожидания в очереди
- * @param startUnloadingTime Время начала разгрузки
- * @param finishUnloadingTime Время окончания разгрузки
- * @param penalty Штраф за дополнительное время стоянки
- */
-class Ship {
-public:
-    string name;//имя корабля
-    string cargoType; //тип груза
-    int cargoWeight; //вес груза
-    int plannedDuration; // планируемая продолжительность разгрузки, ч
-    int actualDuration; // реальная продолжительность разгрузки, ч
-    int arrivalDate; // Время прибытия в днях после начала
-    int arrivalTime; // Время прибытия в днях после начала
-    int real_arrivalTime; // Время прибытия в часах после начала с учетом опоздания или досрочного прибытия
-
-    Ship(int ship_arrivalDate, int ship_arrivalTime, string ship_n,string ship_cargoType, int ship_cargoWeight, int ship_plannedDuration) {//конструктор
-        name = ship_n;
-        cargoType = ship_cargoType;
-        cargoWeight = ship_cargoWeight;
-        plannedDuration = ship_plannedDuration;
-        //обработка в функции
-        arrivalDate = ship_arrivalDate;
-        arrivalTime=ship_arrivalTime;
-//      actualDuration=plannedDuration;
-//      real_arrivalTime = arrivalDate*24 + arrivalTime;
-
-        // Инициализация генератора случайных чисел
-        srand(static_cast<unsigned int>(time(0)));
-
-        // Генерация случайного значения для actualDuration (реальная продолжительность разгрузки)
-        actualDuration = plannedDuration + random(0,12);
-
-        //увеличение продолжительности из-за веса
-        if (cargoWeight>=5000){//при большом весе длительность разгрузки увеличивается
-            actualDuration = actualDuration+ (cargoWeight/1000);
-        }
-
-        //увеличение продолжительности из-за погоды
-        if(random(0,2)==1){// если ветренно, длительность увеличивается
-            actualDuration +=cargoWeight%60;
-        }
-        else if (random(0,2)==2){// если идет дождь, длительность увеличивается
-            actualDuration = actualDuration + (cargoWeight%100);
-        }
-
-        //увеличение продолжительности из-за типа
-        if (cargoType=="Сыпучий"){
-            actualDuration =actualDuration+ (actualDuration%10);
-        }
-        else if (cargoType=="Жидкий"){
-            actualDuration =actualDuration+ (actualDuration%25);
-        }
-        else if(cargoType=="Контейнер"){
-            actualDuration =actualDuration+ (actualDuration%15);
-        }
-
-        //Задержка окончания разгрузки судна, см п. 8 ТЗ
-        actualDuration += random(0, 12*24);
-
-        // Генерация реального отклонения от расписания
-        int start = -2; // Нижняя граница
-        int end = 9; // Верхняя граница
-        int random_number=random(start, end) ;
-        real_arrivalTime = arrivalDate*24 + arrivalTime + random_number;
-
-        if(max_duration<(abs(actualDuration-plannedDuration))){
-            max_duration=abs(actualDuration-plannedDuration);
-        }
-
-        //вычисления для итоговой статистки
-        sum_duration+=actualDuration;
-        len_duration+=1;
-    }
-    //Генерация цисла в промежутке от до
-    int random(int low, int high)
-    {
-        return low + rand() % (high - low + 1);
-    }
-};
 
 //Чтение данных из файла и создание вектора
 vector<Ship> readShipsFromFile(const string& file_path){
@@ -609,7 +504,7 @@ int main() {
         }
     }
     vector<vector<Ship>> sorted_Ships={particulate_Ships, container_Ships, liquid_Ships};//для визуализации, набор сортированных векторов
-    int max_num_cranes=50;//максимальное кол-во кранов одного вида
+    int max_num_cranes=10;//максимальное кол-во кранов одного вида
 
     //Далее ищем минимальную сумму штрафа и количество портов при этом
     vector<int> best_model_particulate;
