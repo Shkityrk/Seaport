@@ -10,134 +10,15 @@
 
 #include "./globals.h"
 #include "Ship.h"
-
+#include "./generator.h"
+#include "./readfile.h"
+#include "./Ship_in_queue.h"
+#include "./write_file.h"
 using namespace std;
 
 
-
-/*
- * Генерация файла
- */
-int randomInRange(int min, int max) {
-    return min + rand() % (max - min + 1);
-}
-
-// Генерация случайной строки
-string generateRandomString(int length) {
-    static const char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-    std::string randomString;
-    for (int i = 0; i < length; ++i) {
-        randomString += alphabet[randomInRange(0, sizeof(alphabet) - 2)];
-
-    }
-    return randomString;
-}
-
-int generator() {
-    int n;
-    std::cout << "Введите количество строк (n): ";
-    std::cin >> n;
-
-    std::ofstream outFile("input.txt");
-    if (!outFile.is_open()) {
-        std::cerr << "Не удалось открыть файл для записи." << std::endl;
-        return 1;
-    }
-
-    // Инициализация генератора случайных чисел
-    srand(static_cast<unsigned>(time(nullptr)));
-
-    for (int i = 0; i < n; ++i) {
-        int day = randomInRange(1, 30);
-        int hour = randomInRange(0, 23);
-        std::string shipName = generateRandomString(10);  // Генерируем случайное имя корабля
-        std::string shipType;
-        int weight = randomInRange(1, 1000);  // Генерируем случайный вес в тоннах
-        int unloadTime = randomInRange(1, 24);  // Генерируем время разгрузки в часах
-
-        int arrivalTime = randomInRange(1, 719);  // Генерируем прибытие в пределах 30 дней
-        int departureTime = arrivalTime + unloadTime;
-
-        // Случайным образом выбираем тип корабля
-        int typeChoice = randomInRange(1, 3);
-        if (typeChoice == 1) {
-            shipType = "Сухогруз";
-        } else if (typeChoice == 2) {
-            shipType = "Контейнер";
-        } else {
-            shipType = "Жидкий";
-        }
-
-        // Записываем данные в файл
-        outFile << day << ' ' << hour << ' ' << shipName << ' ' << shipType << ' ' << weight << ' ' << arrivalTime << ' ' << departureTime << '\n';
-    }
-
-    outFile.close();
-    std::cout << "Файл 'input.txt' успешно создан." << std::endl;
-    return 0;
-}
-
-
-
-//Чтение данных из файла и создание вектора
-vector<Ship> readShipsFromFile(const string& file_path){
-//    int count_lines=length_file(file_path);
-    ifstream file("input.txt");//open file
-    vector<Ship> arriving_ships_database;
-
-    if (!file.is_open()) {
-        std::cerr << "Ошибка открытия файла: " << file_path << std::endl;
-        return arriving_ships_database;
-    }
-    //создаем динамический массив с типом данных Ships
-
-    string line;
-    while (getline(file, line)) {
-        istringstream ss(line);
-        string n, type;
-        int weight, duration, date, time, pen;
-
-        if (ss >> date >> time>> n >> type >> weight >> duration ) {
-            arriving_ships_database.emplace_back(date, time, n, type, weight, duration );
-        } else {
-            cerr << "Ошибка чтения строки: " << line << endl;
-        }
-    }
-
-        file.close();
-    return arriving_ships_database;
-}
-
-struct Ship_in_queue {
-    int arrivalTime;
-    int unloadingTime;
-    string name;
-    int time_in_queue;
-    int start_unloading;
-};
-
-bool compareByArrivalTime(const Ship_in_queue& a, const Ship_in_queue& b) {
+bool compareByArrivalTime(const Ship_in_queue & a, const Ship_in_queue & b) {
     return a.arrivalTime < b.arrivalTime;
-}
-
-void write_elem_in_output(Ship_in_queue & data, int time){
-
-    std::ofstream outFile("statics.txt", std::ios::app);
-
-    if (!outFile) {
-        cerr << "Не удалось открыть файл для записи." << endl;
-        return;
-    }
-    string name=data.name;
-    int arT = data.arrivalTime;
-    int TinQ=data.time_in_queue; // сколько стоит в очереди
-    int UT=data.unloadingTime;
-    int real_time=data.start_unloading;
-    outFile<<"* "<<name<<" "<<arT<<" "<<TinQ<<" "<<time<<" "<<UT<<endl;
-    global_sum_time_queue+=TinQ;
-    global_len_time_queue+=1;
-
-    outFile.close();
 }
 
 

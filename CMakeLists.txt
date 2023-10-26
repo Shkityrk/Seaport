@@ -8,4 +8,13 @@ add_executable(seaport main.cpp
         Ship.h
         globals.cpp
         globals.h
+        generator.cpp
+        readfile.cpp
+        generator.cpp
+        generator.h
+        readfile.h
+        write_file.cpp
+        write_file.h
+        Ship_in_queue.cpp
+        Ship_in_queue.h
 )
