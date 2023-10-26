@@ -1,0 +1,107 @@
+//
+// Created by shkit on 26.10.2023.
+//
+
+#include "vizualization.h"
+#include "Ship_in_queue.h"
+#include "generator.h"
+#include "write_file.h"
+
+
+void vizualization_modelling_ships(int num_ports, vector<Ship>& data){
+    /*
+     * Массив количества портов типа. В начальный момент времени все порты свободны, т.е освободятся в 0.
+     * Поэтому их начальное значение=0
+     * Если корабль прибыл, то в ячейку записываем время, когда порт ОСВОБОДИТСЯ, т.е закончит разгрузку последнего корабль
+     * Проходим циклом по часам и проверяем - свободен ли хотя бы один порт? Если да - загоняем корабль в порт.
+     * Далее удаляем из вектора - он нам больше не нужен.
+     */
+    int numPorts= num_ports;// Количество портов
+    int totalPenalty = 0;
+    int numShips=data.size(); // Количество кораблей
+    vector<Ship_in_queue> ships(numShips);
+
+    for (int i = 0; i < numShips; ++i) {
+        ships[i].arrivalTime=data[i].real_arrivalTime;
+        ships[i].unloadingTime=data[i].actualDuration;
+        ships[i].name=data[i].name; //имя
+    }
+    // отсортировать массив!
+    sort(ships.begin(), ships.end(), compareByArrivalTime);
+
+    vector<int> ports(numPorts, 0);
+    vector<int> len_ports(numPorts, 0);// количество кораблей в очереди на каждый порт
+    int time_penalty;//количество кораблей, стоящих во время time
+
+    for(int time=0; time<24*30; time++){//время
+        time_penalty=0;// обнуляем количество кораблей в очереди.
+        for(int korabl=0; korabl<numShips; korabl++){
+            for (int port=0; port<numPorts; port++ ){
+                if ((ships[korabl].unloadingTime!=0)){
+                    if ((time>=ports[port])&&(time>=ships[korabl].arrivalTime)){
+                        ports[port]=ships[korabl].unloadingTime+time;// порт занят
+                        //запись элемента в файл
+                        if(ships[korabl].unloadingTime!=0) {
+                            ships[korabl].start_unloading=time;
+                            write_elem_in_output(ships[korabl], time);
+                        }
+
+                        ships[korabl].unloadingTime=0;//корабль разгружается/разгрузился
+                        break;
+                    }
+                }
+            }
+        }
+        for(int Queue_ships=0; Queue_ships<numShips; Queue_ships++){
+            if((ships[Queue_ships].arrivalTime<=time)&&(ships[Queue_ships].unloadingTime!=0)){
+                totalPenalty+=1;
+                time_penalty+=1;
+                ships[Queue_ships].time_in_queue+=1;
+                num_korabl+=1;
+            }
+        }
+        //если новый день - выводим статистику
+        if(time%24==0){
+            int cout_penalty=time_penalty;
+            int kol_penalty_on_port=cout_penalty/numPorts;
+            global_len_queue+=1;
+            global_count_queue+=kol_penalty_on_port;
+            cout<<"---------------------------- День "<<time/24+1<< " время "<< time%24<<" ----------------------------"<<endl;
+            for (int p=1; p<=numPorts; p++){ // порты
+
+                int queue_time=ports[p-1]-time;
+                cout<<p<<" ";
+                if(queue_time>=0){
+                    cout<<queue_time<<" ";
+                } else{
+                    cout<<0<<" ";
+                }
+
+                if(time_penalty>0){
+                    if(cout_penalty>=kol_penalty_on_port){
+                        for(int sign_penalty=0; sign_penalty<kol_penalty_on_port;sign_penalty++){
+                            cout<<" = ";
+                            //-------------------------------------------------------------------------------------------------------------------------------
+                        }
+                        cout_penalty=cout_penalty-kol_penalty_on_port;
+                    }else{
+                        for(int sign_penalty=0; sign_penalty<(kol_penalty_on_port-cout_penalty);sign_penalty++){
+                            cout<<" = ";
+                        }
+                    }
+                }
+                cout<<endl;
+                // ввод числа с клавиатуры
+            }
+            cout<<"Day end"<<endl;
+            cout<<"------------------------------------------------------------------------"<<endl;
+            cout<<endl;
+        }
+
+    }
+    all_penny+=totalPenalty;
+    cout<<"Визуализация завершена."<<endl;
+    cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
+         << endl;
+    cout<<"Или введите другой символ для выхода из программы"<<endl;
+}

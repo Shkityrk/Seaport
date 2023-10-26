@@ -17,4 +17,8 @@ add_executable(seaport main.cpp
         write_file.h
         Ship_in_queue.cpp
         Ship_in_queue.h
+        modelling.cpp
+        modelling.h
+        vizualization.cpp
+        vizualization.h
 )

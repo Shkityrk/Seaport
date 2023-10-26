@@ -83,4 +83,6 @@ int generator() {
     return 0;
 }
 
-
+bool compareByArrivalTime(const Ship_in_queue & a, const Ship_in_queue & b) {
+    return a.arrivalTime < b.arrivalTime;
+}
