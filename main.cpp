@@ -88,7 +88,8 @@ int final_statistics(){
 }
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
+    //setlocale(LC_ALL, "Russian");//для работы в Visual Studio
+    SetConsoleOutputCP(CP_UTF8);// в иных случаях
 
     //для проверки производительности - таймер выполнения программы, впоследствии не используется, однако можно запустить, добавив библиотеку в начало кода
 //    unsigned int start_time =  clock();
@@ -130,8 +131,9 @@ int main() {
         }
     }
     vector<vector<Ship>> sorted_Ships={particulate_Ships, container_Ships, liquid_Ships};//для визуализации, набор сортированных векторов
-    int max_num_cranes=10;//максимальное кол-во кранов одного вида(можно менять, однако чем больше значение, тем меньше быстродействие програмы
-
+    int max_num_cranes;//максимальное кол-во кранов одного вида(можно менять, однако чем больше значение, тем меньше быстродействие програмы
+    cout<<"Введите максимальное число портов: "<<endl;
+    cin>>max_num_cranes;
     //Поиск минимальной суммы штрафа и количество портов при этом
 
     vector<int> best_model_particulate;
