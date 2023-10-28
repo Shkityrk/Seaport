@@ -2,8 +2,8 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "vizualization_types.h"
-#include "vizualization_modelling_ships.h"
+#include "../include/vizualization_types.h"
+#include "../include/vizualization_modelling_ships.h"
 
 
 
@@ -17,7 +17,7 @@ void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate
 //    queue[1]=min_penny;
     int num_cranes_min_penny=model_particulate[0];//Количество портов
     //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
+    std::ofstream outFile("data/statics.txt", std::ios::app);
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи." << endl;
         return;
@@ -36,7 +36,7 @@ void vizualization_particulate(vector<Ship>& data, vector<int> model_particulate
 void vizualization_container(vector<Ship>& data, vector<int> model_container){
     int num_cranes_min_penny=model_container[0];//Количество портов
     //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
+    std::ofstream outFile("data/statics.txt", std::ios::app);
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи." << endl;
         return;
@@ -55,7 +55,7 @@ void vizualization_container(vector<Ship>& data, vector<int> model_container){
 void vizualization_liquid(vector<Ship>& data, vector<int> model_liquid){
     int num_cranes_min_penny=model_liquid[0];//Количество портов
     //запись шапки
-    std::ofstream outFile("statics.txt", std::ios::app);
+    std::ofstream outFile("data/statics.txt", std::ios::app);
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи." << endl;
         return;

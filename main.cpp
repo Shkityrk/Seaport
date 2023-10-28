@@ -9,12 +9,12 @@
 #include <windows.h>  // Библиотека для операций, специфичных для операционной системы Windows. Здесь она, вероятно, используется для управления окнами и процессами в Windows-среде.
 
 
-#include "./globals.h"
-#include "Ship.h"
-#include "./generator.h"
-#include "./readfile.h"
-#include "./modelling.h"
-#include "./vizualization.h"
+#include "include/globals.h"
+#include "include/Ship.h"
+#include "include/generator.h"
+#include "include/readfile.h"
+#include "include/modelling.h"
+#include "include/vizualization.h"
 using namespace std;
 
 /*
@@ -23,7 +23,7 @@ using namespace std;
 
 //количество разгруженных кораблей
 int num_corabl(){
-    std::ifstream inputFile("statics.txt"); // Замените "input.txt" на имя вашего файла
+    std::ifstream inputFile("data/statics.txt"); // Замените "input.txt" на имя вашего файла
     if (!inputFile.is_open()) {
         std::cerr << "Не удалось открыть файл." << std::endl;
         return 1;
@@ -68,7 +68,7 @@ int absolut_penny(){
 
 //вывод статистики с использованием глобальных переменных
 int final_statistics(){
-    std::ofstream outFile("statics.txt", std::ios::app);
+    std::ofstream outFile("data/statics.txt", std::ios::app);
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи." << endl;
         return 0;
@@ -100,7 +100,7 @@ int main() {
     cout<<"Файл сгенерирован"<<endl;
 
     // Создание экземпляров судов - данный будут подтягиваться из сгенерированного файлика
-    vector<Ship> database_arrival_ships= readShipsFromFile("input.txt");// получаем данные из файла
+    vector<Ship> database_arrival_ships= readShipsFromFile("data/input.txt");// получаем данные из файла
 
     //Создание пустых векторов под каждый тип груза - для сортировки
     vector<Ship> particulate_Ships;
@@ -109,7 +109,7 @@ int main() {
 
     //оформление итогового файла, пояснение
     ofstream ofs;// При повторном открытии текст не стирается, а дописывается. Работа по принципу log
-    ofs.open("statics.txt", ofstream::out | ofstream::trunc);
+    ofs.open("data/statics.txt", ofstream::out | ofstream::trunc);
     ofs<<"Список произведенных разгрузок"<<endl;
     ofs<<"Вид данных в файле: <Название корабля> <Время прихода в порт в часах, начиная от начала отсчета> <Время ожидания в очереди на разгрузку> <Продолжительность разгрузки>";
     ofs<<"Каждый столбец дня пронумерован - это номер порта, затем время, когда порт освободится от разгружаемого корабля"<<endl;

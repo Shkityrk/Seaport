@@ -2,12 +2,12 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "write_file.h"
-#include "Ship_in_queue.h"
+#include "../include/write_file.h"
+#include "../include/Ship_in_queue.h"
 
 
 void write_elem_in_output(Ship_in_queue & data, int time){
-    ofstream outFile("statics.txt", ios::app);//Когда установлен ios::app, все операции вывода выполняются в конце файла, т.е не удаляются предыдущие элементы
+    ofstream outFile("data/statics.txt", ios::app);//Когда установлен ios::app, все операции вывода выполняются в конце файла, т.е не удаляются предыдущие элементы
 
     //Обработка ошибки
     if (!outFile) {

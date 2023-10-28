@@ -2,7 +2,7 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "Ship.h"
+#include "../include/Ship.h"
 
 // конструктор cppreference
 

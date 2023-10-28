@@ -5,8 +5,8 @@
 #include <sstream>
 #include <windows.h>
 
-#include "./globals.h"
-#include "Ship.h"
+#include "../include/globals.h"
+#include "../include/Ship.h"
 
 using namespace std;
 
@@ -15,7 +15,7 @@ vector<Ship> readShipsFromFile(const string& file_path){
 //    int count_lines=length_file(file_path);//для тестов, в стабильной версии программы не используется ввиду ненужности
 
     vector<Ship> arriving_ships_database; //Объявление вектора, содержащего данные обо всех кораблях из входного файла
-    ifstream file("input.txt");//Попытка открытия файла
+    ifstream file("data/input.txt");//Попытка открытия файла
 
     /**
      * Обработка исключения открытия файла

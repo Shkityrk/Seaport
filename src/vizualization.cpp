@@ -2,8 +2,8 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "vizualization.h"
-#include "vizualization_types.h"
+#include "../include/vizualization.h"
+#include "../include/vizualization_types.h"
 
 
 void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_models){

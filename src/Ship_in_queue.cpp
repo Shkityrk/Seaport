@@ -2,7 +2,7 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "Ship_in_queue.h"
+#include "../include/Ship_in_queue.h"
 
 #include <iostream>
 #include <cstdlib>
@@ -13,7 +13,7 @@
 #include <sstream>
 #include <windows.h>
 
-#include "./globals.h"
-#include "Ship.h"
+#include "../include/globals.h"
+#include "../include/Ship.h"
 
 struct Ship_in_queue;

@@ -12,7 +12,7 @@
 #include <sstream>
 #include <windows.h>
 
-#include "./globals.h"
+#include "globals.h"
 #include "Ship.h"
 
 /**

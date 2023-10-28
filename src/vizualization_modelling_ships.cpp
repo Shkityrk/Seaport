@@ -2,10 +2,10 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "vizualization_modelling_ships.h"
-#include "Ship_in_queue.h"
-#include "generator.h"
-#include "write_file.h"
+#include "../include/vizualization_modelling_ships.h"
+#include "../include/Ship_in_queue.h"
+#include "../include/generator.h"
+#include "../include/write_file.h"
 
 
 

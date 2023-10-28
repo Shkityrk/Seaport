@@ -2,7 +2,7 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "generator.h"
+#include "../include/generator.h"
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
@@ -30,7 +30,7 @@ int generator() {
     std::cout << "Введите количество строк (n): ";
     std::cin >> n; //ввод кол-ва строк
 
-    std::ofstream outFile("input.txt");// Открытие файла и проверка на успешность
+    std::ofstream outFile("data/input.txt");// Открытие файла и проверка на успешность
     if (!outFile.is_open()) {
         std::cerr << "Не удалось открыть файл для записи." << std::endl;
         return 1;

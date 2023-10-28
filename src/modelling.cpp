@@ -2,9 +2,9 @@
 // Created by shkit on 26.10.2023.
 //
 
-#include "modelling.h"
-#include "generator.h"
-#include "Ship_in_queue.h"
+#include "../include/modelling.h"
+#include "../include/generator.h"
+#include "../include/Ship_in_queue.h"
 
 int modelling_ships(int num_ports, vector<Ship>& data){
     int numPorts= num_ports;// Количество портов
