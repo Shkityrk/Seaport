@@ -2,8 +2,7 @@
 // Created by shkit on 26.10.2023.
 //
 
-#ifndef SEAPORT_GLOBALS_H
-#define SEAPORT_GLOBALS_H
+#pragma once
 //
 // Created by shkit on 26.10.2023.
 //
@@ -30,4 +29,4 @@ extern int len_duration;
 
 //общая сумма штрафа
 extern int all_penny;
-#endif //SEAPORT_GLOBALS_H
+

@@ -21,7 +21,6 @@ void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_m
      * 7
      * ----------------------------------------------------
      * Далее 3 день(enter), выход(/away)
-     * _
      */
     vector<Ship> viz_particulate_Ships=data[0];
     vector<Ship> viz_container_Ships=data[1];
@@ -31,12 +30,19 @@ void visualization(vector<vector<Ship>>& data, const vector<vector<int>>& best_m
     const vector<int>& best_model_container=best_models[1];
     const vector<int>& best_model_liquid=best_models[2];
 
-    int var;
+    int var;//Выбор типа корабля
     cout << "Выберите тип корабля:" << endl << "1 - Сухогрузы" << endl << "2 - Контейнеры" << endl << "3 - Жидкости"
          << endl;
     cout<<"Или введите другой символ для выхода из программы"<<endl;
     cin>>var;
     //цикл
+    /**
+     * Выбор варианта построения визуализации
+     * 1 - Сухогрузы
+     * 2 - Контейнеры
+     * 3 - Жидкости
+     * Иной символ - завершение рабоыт программы
+     */
     while((var==1)||(var==2)||(var==3)) {
         if (var == 1) {
             //Сухогрузы

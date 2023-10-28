@@ -18,4 +18,9 @@
 #include "Ship.h"
 #include "Ship_in_queue.h"
 
+/**
+ * Запись элемента в файл без удаления предыдущего содержимого элемента
+ * @param data Вектор данных о кораблях в очереди
+ * @param time Время в часах, для которого записываются данные
+ */
 void write_elem_in_output(Ship_in_queue & data, int time);

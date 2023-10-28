@@ -7,20 +7,21 @@
  * Глобальные переменные суммируются в процессе моделирования. Они необходимы для итоговой статистики
  */
 int num_korabl=0;// количество кораблей
+
 //для нахождения средней длины очереди
-int global_count_queue=0;
-int global_len_queue=0;
+int global_count_queue=0;//сумма очередей кораблей
+int global_len_queue=0;//количество замеров
 
 //для нахождения максимальной задержки разгрузки
 int max_duration=0;
 
 //время ожидания в очереди
-int global_sum_time_queue=0;
-int global_len_time_queue=0;
+int global_sum_time_queue=0;//сумма времени ожидания в очереди
+int global_len_time_queue=0;//количетсво замеров ожидания в очереди
 
 // средняя задержка разгрузки
-int sum_duration=0;
-int len_duration=0;
+int sum_duration=0;//сумма всех задержек разгрузки
+int len_duration=0;//количество проведенных измерений
 
 //общая сумма штрафа
 int all_penny=0;
