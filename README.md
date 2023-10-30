@@ -85,7 +85,7 @@
 
 В терминале Windows открыть необходимое расположение, ввести команду:
 ```shell
-git clone https://github.com/your_username_/Project-Name
+git clone https://github.com/Shkityrk/Seaport.git
 ```
 
 Загрузить проект с репозитория GitHub
